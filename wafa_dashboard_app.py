@@ -19,6 +19,28 @@ if not (_HERE / "src" / "contracts.py").exists():
     _zf.ZipFile(_io.BytesIO(_b64.b64decode(_WAFA_BUNDLE))).extractall(_HERE)
 del _WAFA_BUNDLE
 
+
+def _ensure_deps():
+    """Self-install missing packages (e.g. when requirements.txt was not read)."""
+    import importlib, subprocess, sys as _sys
+    missing = []
+    for mod, pkg in (("sklearn", "scikit-learn"), ("joblib", "joblib"),
+                     ("pandas", "pandas"), ("scipy", "scipy"), ("numpy", "numpy")):
+        try:
+            importlib.import_module(mod)
+        except Exception:
+            missing.append(pkg)
+    if missing:
+        try:
+            subprocess.check_call([_sys.executable, "-m", "pip", "install",
+                                   "--quiet", *missing])
+            importlib.invalidate_caches()
+        except Exception:
+            pass  # fall through; the real import error will explain itself
+
+
+_ensure_deps()
+
 """
 Project Wafa — Retention Intelligence Dashboard (M5).
 
